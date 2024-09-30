@@ -2,7 +2,7 @@ include config.mk
 include Makefile.vars
 
 MAKEF=$(MAKE) -f Makefile.in
-ALL_SRCDIRS=. base ssl event event/kcp util cpputil evpp protocol http http/client http/server
+ALL_SRCDIRS=. base ssl event event/kcp util cpputil evpp protocol http http/client
 CORE_SRCDIRS=. base ssl event
 ifeq ($(WITH_KCP), yes)
 CORE_SRCDIRS += event/kcp
@@ -29,11 +29,6 @@ ifeq ($(WITH_NGHTTP2), yes)
 LIBHV_HEADERS += $(HTTP2_HEADERS)
 endif
 
-ifeq ($(WITH_HTTP_SERVER), yes)
-LIBHV_HEADERS += $(HTTP_SERVER_HEADERS)
-LIBHV_SRCDIRS += http/server
-endif
-
 ifeq ($(WITH_HTTP_CLIENT), yes)
 LIBHV_HEADERS += $(HTTP_CLIENT_HEADERS)
 LIBHV_SRCDIRS += http/client
@@ -50,17 +45,10 @@ all: libhv examples
 examples: hmain_test htimer_test hloop_test pipe_test \
 	nc nmap tinyhttpd tinyproxyd httpd curl wget wrk \
 	tcp_client_test \
-	tcp_echo_server \
-	tcp_chat_server \
-	tcp_proxy_server \
-	udp_echo_server \
-	udp_proxy_server \
-	socks5_proxy_server \
 	multi-acceptor-processes \
 	multi-acceptor-threads \
 	one-acceptor-multi-workers \
-	http_server_test http_client_test \
-	websocket_server_test \
+	http_client_test \
 	websocket_client_test \
 	jsonrpc
 	@echo "make examples done."
@@ -109,24 +97,6 @@ pipe_test: prepare
 tcp_client_test: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/tcp_client_test.c"
 
-tcp_echo_server: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/tcp_echo_server.c"
-
-tcp_chat_server: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/tcp_chat_server.c"
-
-tcp_proxy_server: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/tcp_proxy_server.c"
-
-udp_echo_server: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/udp_echo_server.c"
-
-udp_proxy_server: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/udp_proxy_server.c"
-
-socks5_proxy_server: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/socks5_proxy_server.c"
-
 multi-acceptor-processes: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/multi-thread/multi-acceptor-processes.c"
 
@@ -153,7 +123,7 @@ wrk: prepare
 
 httpd: prepare
 	$(RM) examples/httpd/*.o
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client http/server examples/httpd"
+	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client examples/httpd"
 
 curl: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client" SRCS="examples/curl.cpp"
@@ -162,36 +132,23 @@ curl: prepare
 wget: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client" SRCS="examples/wget.cpp"
 
-http_server_test: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/server" SRCS="examples/http_server_test.cpp"
-
 http_client_test: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client" SRCS="examples/http_client_test.cpp"
-
-websocket_server_test: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/server" SRCS="examples/websocket_server_test.cpp"
 
 websocket_client_test: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client" SRCS="examples/websocket_client_test.cpp"
 
-kcptun: kcptun_client kcptun_server
+kcptun: kcptun_client
 
 kcptun_client: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) examples/kcptun/smux examples/kcptun/client"
 
-kcptun_server: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) examples/kcptun/smux examples/kcptun/server"
-
-jsonrpc: jsonrpc_client jsonrpc_server
+jsonrpc: jsonrpc_client
 
 jsonrpc_client: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/jsonrpc/jsonrpc_client.c examples/jsonrpc/cJSON.c"
 
-jsonrpc_server: prepare
-	$(RM) examples/jsonrpc/*.o
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS)" SRCS="examples/jsonrpc/jsonrpc_server.c examples/jsonrpc/cJSON.c"
-
-protorpc: protorpc_client protorpc_server
+protorpc: protorpc_client
 
 protorpc_protoc:
 	bash examples/protorpc/proto/protoc.sh
@@ -199,12 +156,6 @@ protorpc_protoc:
 protorpc_client: prepare protorpc_protoc
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) cpputil evpp examples/protorpc/generated" \
 		SRCS="examples/protorpc/protorpc_client.cpp examples/protorpc/protorpc.c" \
-		LIBS="protobuf"
-
-protorpc_server: prepare protorpc_protoc
-	$(RM) examples/protorpc/*.o
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) cpputil evpp examples/protorpc/generated" \
-		SRCS="examples/protorpc/protorpc_server.cpp examples/protorpc/protorpc.c" \
 		LIBS="protobuf"
 
 unittest: prepare
@@ -231,7 +182,7 @@ unittest: prepare
 	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Icpputil  -o bin/synchronized_test unittest/synchronized_test.cpp -pthread
 	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Icpputil  -o bin/threadpool_test   unittest/threadpool_test.cpp  -pthread
 	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Icpputil  -o bin/objectpool_test   unittest/objectpool_test.cpp  -pthread
-	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Ievpp -Icpputil -Ihttp -Ihttp/client -Ihttp/server -o bin/sizeof_test unittest/sizeof_test.cpp
+	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Ievpp -Icpputil -Ihttp -Ihttp/client -o bin/sizeof_test unittest/sizeof_test.cpp
 	$(CC)  -g -Wall -O0 -std=c99   -I. -Ibase -Iprotocol -o bin/nslookup          unittest/nslookup_test.c      protocol/dns.c  base/hsocket.c
 	$(CC)  -g -Wall -O0 -std=c99   -I. -Ibase -Iprotocol -o bin/ping              unittest/ping_test.c          protocol/icmp.c base/hsocket.c base/htime.c -DPRINT_DEBUG
 	$(CC)  -g -Wall -O0 -std=c99   -I. -Ibase -Iprotocol -o bin/ftp               unittest/ftp_test.c           protocol/ftp.c  base/hsocket.c
@@ -248,10 +199,8 @@ evpp: prepare libhv
 	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Icpputil -Ievpp -o bin/EventLoopThread_test     evpp/EventLoopThread_test.cpp     -Llib -lhv -pthread
 	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Icpputil -Ievpp -o bin/EventLoopThreadPool_test evpp/EventLoopThreadPool_test.cpp -Llib -lhv -pthread
 	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Icpputil -Ievpp -o bin/TimerThread_test         evpp/TimerThread_test.cpp         -Llib -lhv -pthread
-	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Icpputil -Ievpp -o bin/TcpServer_test           evpp/TcpServer_test.cpp           -Llib -lhv -pthread
 	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Icpputil -Ievpp -o bin/TcpClient_test           evpp/TcpClient_test.cpp           -Llib -lhv -pthread
 	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Icpputil -Ievpp -o bin/TcpClientEventLoop_test  evpp/TcpClientEventLoop_test.cpp  -Llib -lhv -pthread
-	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Icpputil -Ievpp -o bin/UdpServer_test           evpp/UdpServer_test.cpp           -Llib -lhv -pthread
 	$(CXX) -g -Wall -O0 -std=c++11 -I. -Ibase -Issl -Ievent -Icpputil -Ievpp -o bin/UdpClient_test           evpp/UdpClient_test.cpp           -Llib -lhv -pthread
 
 # UNIX only

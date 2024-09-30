@@ -62,9 +62,7 @@ set(EVPP_HEADERS
     evpp/EventLoopThreadPool.h
     evpp/Status.h
     evpp/TcpClient.h
-    evpp/TcpServer.h
     evpp/UdpClient.h
-    evpp/UdpServer.h
 )
 
 set(PROTOCOL_HEADERS
