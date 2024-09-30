@@ -2,7 +2,7 @@ include config.mk
 include Makefile.vars
 
 MAKEF=$(MAKE) -f Makefile.in
-ALL_SRCDIRS=. base ssl event event/kcp util cpputil evpp protocol http http/client http/server mqtt
+ALL_SRCDIRS=. base ssl event event/kcp util cpputil evpp protocol http http/client http/server
 CORE_SRCDIRS=. base ssl event
 ifeq ($(WITH_KCP), yes)
 CORE_SRCDIRS += event/kcp
@@ -42,18 +42,13 @@ endif
 endif
 endif
 
-ifeq ($(WITH_MQTT), yes)
-LIBHV_HEADERS += $(MQTT_HEADERS)
-LIBHV_SRCDIRS += mqtt
-endif
-
 default: all
 
 all: libhv examples
 	@echo "make all done, please enjoy libhv."
 
 examples: hmain_test htimer_test hloop_test pipe_test \
-	nc nmap tinyhttpd tinyproxyd httpd curl wget wrk consul \
+	nc nmap tinyhttpd tinyproxyd httpd curl wget wrk \
 	tcp_client_test \
 	tcp_echo_server \
 	tcp_chat_server \
@@ -67,9 +62,6 @@ examples: hmain_test htimer_test hloop_test pipe_test \
 	http_server_test http_client_test \
 	websocket_server_test \
 	websocket_client_test \
-	mqtt_sub \
-	mqtt_pub \
-	mqtt_client_test \
 	jsonrpc
 	@echo "make examples done."
 
@@ -163,9 +155,6 @@ httpd: prepare
 	$(RM) examples/httpd/*.o
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client http/server examples/httpd"
 
-consul: prepare libhv
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client examples/consul" DEFINES="PRINT_DEBUG"
-
 curl: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client" SRCS="examples/curl.cpp"
 	# $(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client" SRCS="examples/curl.cpp" WITH_CURL=yes
@@ -184,15 +173,6 @@ websocket_server_test: prepare
 
 websocket_client_test: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) util cpputil evpp http http/client" SRCS="examples/websocket_client_test.cpp"
-
-mqtt_sub: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) mqtt" SRCS="examples/mqtt/mqtt_sub.c"
-
-mqtt_pub: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) mqtt" SRCS="examples/mqtt/mqtt_pub.c"
-
-mqtt_client_test: prepare
-	$(MAKEF) TARGET=$@ SRCDIRS="$(CORE_SRCDIRS) mqtt" SRCS="examples/mqtt/mqtt_client_test.cpp"
 
 kcptun: kcptun_client kcptun_server
 

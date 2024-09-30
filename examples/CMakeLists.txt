@@ -135,12 +135,6 @@ if(WITH_HTTP_CLIENT)
     add_executable(wget wget.cpp)
     target_link_libraries(wget ${HV_LIBRARIES})
 
-    # consul
-    glob_headers_and_sources(CONSUL_FILES consul)
-    add_executable(consul ${CONSUL_FILES})
-    target_compile_definitions(consul PRIVATE PRINT_DEBUG)
-    target_link_libraries(consul ${HV_LIBRARIES})
-
     # http_client_test
     add_executable(http_client_test http_client_test.cpp)
     target_link_libraries(http_client_test ${HV_LIBRARIES})
@@ -149,7 +143,7 @@ if(WITH_HTTP_CLIENT)
     add_executable(websocket_client_test websocket_client_test.cpp)
     target_link_libraries(websocket_client_test ${HV_LIBRARIES})
 
-    list(APPEND EXAMPLES ${CURL_TARGET_NAME} wget consul http_client_test websocket_client_test)
+    list(APPEND EXAMPLES ${CURL_TARGET_NAME} wget http_client_test websocket_client_test)
 
     if(WITH_HTTP_SERVER)
         # httpd
@@ -161,21 +155,6 @@ if(WITH_HTTP_CLIENT)
 endif()
 
 endif()
-endif()
-
-if(WITH_MQTT)
-    include_directories(../mqtt)
-
-    add_executable(mqtt_sub mqtt/mqtt_sub.c)
-    target_link_libraries(mqtt_sub ${HV_LIBRARIES})
-
-    add_executable(mqtt_pub mqtt/mqtt_pub.c)
-    target_link_libraries(mqtt_pub ${HV_LIBRARIES})
-
-    add_executable(mqtt_client_test mqtt/mqtt_client_test.cpp)
-    target_link_libraries(mqtt_client_test ${HV_LIBRARIES})
-
-    list(APPEND EXAMPLES mqtt_sub mqtt_pub mqtt_client_test)
 endif()
 
 add_custom_target(examples DEPENDS ${EXAMPLES})
