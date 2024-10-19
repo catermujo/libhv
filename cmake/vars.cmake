@@ -9,6 +9,7 @@ set(BASE_HEADERS
     base/hmath.h
     base/hbase.h
     base/hversion.h
+    base/hwebsocket.h
     base/hsysinfo.h
     base/hproc.h
     base/hthread.h
